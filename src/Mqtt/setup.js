@@ -91,6 +91,7 @@ class MqttHandler {
     if (this.client.isConnected()) {
       try {
         console.log("Publishing to:", topic);
+        console.log(msg);
         const serializedMessage = this.serializeMessage(msg);
         const message = new Paho.Message(serializedMessage);
         message.destinationName = topic;

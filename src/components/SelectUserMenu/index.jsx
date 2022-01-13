@@ -1,11 +1,16 @@
 import React from "react";
 import { Menu, Dropdown, Button } from "antd";
 import { dummyAccount } from "../../utils/dummyData";
+import { useNavigate } from "react-router-dom";
 
-const SelectUserMenu = ({ startConnection }) => {
+const SelectUserMenu = ({ startConnection, setUser }) => {
+  const navigate = useNavigate();
   const handleUserSelected = (e) => {
     console.log("USER SELECTED", e);
+    setUser(e.key);
     startConnection(dummyAccount[e.key]);
+    // console.log(e.key);
+    navigate(`/chat/${e.key}`);
   };
 
   const menu = (
@@ -22,9 +27,12 @@ const SelectUserMenu = ({ startConnection }) => {
     </Menu>
   );
   return (
-    <Dropdown overlay={menu} placement="bottomCenter" arrow>
-      <Button size="large">Select User</Button>
-    </Dropdown>
+    <>
+      <span>Please Select User In Menu</span>
+      <Dropdown overlay={menu} placement="bottomCenter" arrow>
+        <Button size="large">Select User</Button>
+      </Dropdown>
+    </>
   );
 };
 

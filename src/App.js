@@ -4,12 +4,15 @@ import MqttHandler from "./Mqtt/setup";
 import SelectUserMenu from "./components/SelectUserMenu";
 import { Input, Button, notification } from "antd";
 import { MQTT_TOPICS } from "./utils/constants";
+import { BrowserRouter, Route, Routes, useParams } from "react-router-dom";
+import ChatUi from "./components/Chat";
+import Connecting from "./components/Chat/Connecting";
 
 export const mqttHandler = new MqttHandler();
 
 function App() {
   const [mqttConnected, setMqttConnected] = useState(false);
-  const [message, setMessage] = useState("");
+  const [messages, setMessage] = useState([]);
   const newMessageArrivedFunc = (message) => {
     const messagePayload = JSON.parse(message.payloadString);
     console.log("NEW MESSAGE ARRIVED", messagePayload);
@@ -43,7 +46,8 @@ function App() {
 
   const sendMessage = (message) => {
     mqttHandler.publish(MQTT_TOPICS.CHAT, message);
-    setMessage("");
+    setMessage((prevState) => [...prevState, message]);
+    localStorage.setItem("msg", JSON.stringify(messages));
   };
 
   const openNotification = (message) => {
@@ -55,34 +59,38 @@ function App() {
       },
     });
   };
+  const [user, setUser] = useState();
 
   return (
     <div className="App">
-      <SelectUserMenu startConnection={startMqttConnection} />
-      {mqttConnected && (
-        <>
-          <div> MQTT CONNECTED</div>
-          <Input.Group compact>
-            <Input
-              onChange={(e) => {
-                setMessage(e.target.value);
-              }}
-              value={message}
-              style={{ width: "200px" }}
-              placeholder="Enter a message"
-              onPressEnter={() => sendMessage(message)}
-            />
-            <Button
-              onClick={() => {
-                sendMessage(message);
-              }}
-              type="primary"
-            >
-              Send
-            </Button>
-          </Input.Group>
-        </>
-      )}
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/chat/:key"
+            element={
+              !mqttConnected ? (
+                <Connecting />
+              ) : (
+                <ChatUi
+                  sendMessage={sendMessage}
+                  user={user}
+                  message={messages}
+                />
+              )
+            }
+          />
+
+          <Route
+            path="/"
+            element={
+              <SelectUserMenu
+                startConnection={startMqttConnection}
+                setUser={setUser}
+              />
+            }
+          />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
